@@ -20,7 +20,7 @@ RUN apk add --no-cache openssl ca-certificates
 WORKDIR /usr/src/app
 
 # Copy the application's executable from the builder stage
-COPY --from=builder /usr/src/app/backend/target/release/meal_website .
+COPY --from=builder /usr/src/app/backend/target/release/meal_website ./
 
 # Expose the application's port
 EXPOSE  8080

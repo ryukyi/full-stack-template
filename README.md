@@ -28,6 +28,18 @@ meal_website/
 
 ### Backend Quickstart
 
+Setup environment file by renaming `meals-example.env` -> `.env`:
+
+```bash
+# FILE: meal.env
+POSTGRES_USER=mealsuser
+POSTGRES_PASSWORD=mealspassword
+POSTGRES_DB=mealsdb
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+DATABASE_URL=postgresql://mealsuser:mealspassword@localhost:5432/mealsdb
+```
+
 ```bash
 docker compose up -d --build
 ```

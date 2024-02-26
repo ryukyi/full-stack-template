@@ -5,7 +5,8 @@
 .venv 
 
 # secrets and in env files
-.env
+meals.env
+db.env
 
 # # # # # # # # 
 # RUST
@@ -29,3 +30,5 @@ Cargo.lock
 # Added by cargo
 
 /target
+
+.vscode

@@ -1,65 +1,37 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use tokio_postgres::{NoTls, Error as PgError};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use dotenv::dotenv;
-use std::cell::RefCell;
+use log::{error, info};
 use std::env;
-use std::error::Error;
-use std::fmt;
-use log::{info, error};
-use env_logger;
+use std::sync::Arc;
+use tokio_postgres::NoTls;
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Meal {
-    id: i32,
-    name: String,
-    description: String,
-    price: f64,
-}
+mod schema;
 
-#[derive(Debug)]
-enum AppError {
-    DatabaseError(PgError),
-    IoError(std::io::Error),
-}
-
-impl fmt::Display for AppError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            AppError::DatabaseError(ref err) => write!(f, "Database error: {}", err),
-            AppError::IoError(ref err) => write!(f, "IO error: {}", err),
-        }
-    }
-}
-
-impl Error for AppError {}
-
-impl From<PgError> for AppError {
-    fn from(err: PgError) -> AppError {
-        AppError::DatabaseError(err)
-    }
-}
-
-impl From<std::io::Error> for AppError {
-    fn from(err: std::io::Error) -> AppError {
-        AppError::IoError(err)
-    }
-}
+use crate::schema::{Meal, Order, User};
 
 // Update the list_meals function signature to match the Arc-wrapped client
 async fn list_meals(db_pool: web::Data<Arc<tokio_postgres::Client>>) -> impl Responder {
-    let query = "SELECT id, name, description, price FROM meals";
+    let query = "
+        SELECT id
+             , name
+             , description
+             , CAST(price AS FLOAT) 
+             , created_at
+             , updated_at
+        FROM meals
+        ";
     match db_pool.query(query, &[]).await {
         Ok(rows) => {
-            let meals: Vec<Meal> = rows.iter().map(|row| Meal {
-                id: row.get("id"),
-                name: row.get("name"),
-                description: row.get("description"),
-                price: row.get("price"),
-            }).collect();
+            let meals: Vec<Meal> = rows
+                .iter()
+                .map(|row| Meal {
+                    id: row.get("id"),
+                    name: row.get("name"),
+                    description: row.get("description"),
+                    price: row.get("price"),
+                })
+                .collect();
             HttpResponse::Ok().json(meals)
-        },
+        }
         Err(e) => {
             eprintln!("Failed to dexecute query: {}", e);
             HttpResponse::InternalServerError().finish()
@@ -86,11 +58,14 @@ async fn insert_order(
         RETURNING id;
     ";
 
-    match db_pool.query_one(query, &[&user_id, &meal_id, &quantity]).await {
+    match db_pool
+        .query_one(query, &[&user_id, &meal_id, &quantity])
+        .await
+    {
         Ok(row) => {
             let order_id: i32 = row.get(0);
             HttpResponse::Ok().json(order_id) // Respond with the ID of the newly inserted order
-        },
+        }
         Err(e) => {
             eprintln!("Failed to insert order: {}", e);
             HttpResponse::InternalServerError().finish()
@@ -99,23 +74,27 @@ async fn insert_order(
 }
 
 fn create_database_url() -> String {
-    dotenv().ok();
+    dotenv::from_filename("meals.env").ok();
 
     let postgres_user = env::var("POSTGRES_USER").expect("POSTGRES_USER must be set");
     let postgres_password = env::var("POSTGRES_PASSWORD").expect("POSTGRES_PASSWORD must be set");
     let postgres_db = env::var("POSTGRES_DB").expect("POSTGRES_DB must be set");
     let postgres_host = env::var("POSTGRES_HOST").expect("POSTGRES_HOST must be set");
     let postgres_port = env::var("POSTGRES_PORT").expect("POSTGRES_PORT must be set");
-    format!("postgres://{}:{}@{}:{}/{}", postgres_user, postgres_password, postgres_host, postgres_port, postgres_db)
+    format!(
+        "postgres://{}:{}@{}:{}/{}",
+        postgres_user, postgres_password, postgres_host, postgres_port, postgres_db
+    )
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init();
 
     let dburl = create_database_url();
     // Connect to the database
-    let (client, conn) = tokio_postgres::connect(&dburl, NoTls).await.expect("Failed to connect to database");
+    let (client, conn) = tokio_postgres::connect(&dburl, NoTls)
+        .await
+        .expect("Failed to connect to database");
 
     // Wrap the client in an Arc for shared ownership
     let client = Arc::new(client);
@@ -139,4 +118,4 @@ async fn main() -> std::io::Result<()> {
     .bind("127.0.0.1:8080")?
     .run()
     .await
-    }
+}
