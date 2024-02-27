@@ -15,6 +15,7 @@ async fn list_meals(db_pool: web::Data<Arc<tokio_postgres::Client>>) -> impl Res
              , name
              , description
              , CAST(price AS FLOAT) 
+             -- TODO: add timestamps to query and schema
              , created_at
              , updated_at
         FROM meals
@@ -115,7 +116,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(client.clone())) // Directly pass the Arc-wrapped client
             .route("/meals", web::get().to(list_meals))
     })
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }
