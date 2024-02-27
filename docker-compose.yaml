@@ -16,8 +16,12 @@ services:
     build: .
     ports:
       - "8080:8080"
-    env_file:
-      - meals.env
+    environment:
+      POSTGRES_USER: mealsuser
+      POSTGRES_PASSWORD: mealspassword
+      POSTGRES_DB: mealsdb
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
     depends_on:
       - db
     networks:
