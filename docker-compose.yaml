@@ -1,31 +1,40 @@
 version: '3'
 
 services:
-  db:
-    build: ./db/
-    ports:
-      - "5432:5432"
+  database:
+    build: ./database/
     env_file:
-      - meals.env
+      - ./meals.env
     volumes:
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - meals-network
 
   web:
-    build: .
-    ports:
-      - "8080:8080"
+    build: ./backend/
+    # env_file:
+    #   - ./meals.env
     environment:
       POSTGRES_USER: mealsuser
       POSTGRES_PASSWORD: mealspassword
       POSTGRES_DB: mealsdb
-      POSTGRES_HOST: db
+      POSTGRES_HOST: database
       POSTGRES_PORT: 5432
     depends_on:
-      - db
+      - database
     networks:
       - meals-network
+
+  # frontend:
+  #   build: ./frontend/
+  #   env_file:
+  #     - ./meals.env
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - web
+  #   networks:
+  #     - meals-network
 
 networks:
   meals-network:

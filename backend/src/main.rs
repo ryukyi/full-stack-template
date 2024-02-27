@@ -1,4 +1,5 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_cors::Cors;
+use actix_web::{http::header, web, App, HttpResponse, HttpServer, Responder};
 use log::{error, info};
 use std::env;
 use std::sync::Arc;
@@ -82,15 +83,18 @@ fn create_database_url() -> String {
     let postgres_db = env::var("POSTGRES_DB").expect("POSTGRES_DB must be set");
     let postgres_host = env::var("POSTGRES_HOST").expect("POSTGRES_HOST must be set");
     let postgres_port = env::var("POSTGRES_PORT").expect("POSTGRES_PORT must be set");
-    format!(
+    let dburl = format!(
         "postgres://{}:{}@{}:{}/{}",
         postgres_user, postgres_password, postgres_host, postgres_port, postgres_db
-    )
+    );
+
+    println!("Database URL: {}", dburl); // Debug print
+
+    dburl
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     let dburl = create_database_url();
     // Connect to the database
     let (client, conn) = tokio_postgres::connect(&dburl, NoTls)
@@ -109,10 +113,17 @@ async fn main() -> std::io::Result<()> {
 
     info!("Starting the Actix Web server with the database client...");
 
-    // Start the Actix Web server with the database client
-    // Update the Data wrapping in the HttpServer::new closure
+    // Start the Actix Web server with the database client and cors
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://0.0.0.0:80")
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
+            .allowed_header(header::CONTENT_TYPE)
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(client.clone())) // Directly pass the Arc-wrapped client
             .route("/meals", web::get().to(list_meals))
     })

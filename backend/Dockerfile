@@ -3,8 +3,8 @@ FROM rust:1.70.0-slim AS builder
 WORKDIR /usr/src/app
 
 # Copy the source code and build the application
-COPY ./backend ./backend/
-RUN cargo build --release --manifest-path=./backend/Cargo.toml
+COPY . .
+RUN cargo build --release
 
 # TODO: optimize builder so container is smallest possible - maybe alpine linux?
 
@@ -12,4 +12,4 @@ RUN cargo build --release --manifest-path=./backend/Cargo.toml
 EXPOSE 8080
 
 # Run the application
-CMD ["/usr/src/app/backend/target/release/meal_website"]
+CMD ["/usr/src/app/target/release/meal_backend"]
