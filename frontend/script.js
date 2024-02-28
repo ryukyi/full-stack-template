@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function fetchMeals() {
     try {
         // Use async/await syntax for cleaner code
-        const response = await fetch('http://backend:8080/meals'); // Adjust the URL/port as necessary
+        const response = await fetch('api/meals'); // Adjust the URL/port as necessary
         const data = await response.json();
 
         const list = document.getElementById('meals-list');

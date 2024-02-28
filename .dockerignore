@@ -1,7 +1,7 @@
 # all local caches
 **cache**
 
-*.env
+.env
 
 # # # # # # # # 
 # RUST

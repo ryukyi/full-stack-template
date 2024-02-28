@@ -116,7 +116,7 @@ async fn main() -> std::io::Result<()> {
     // Start the Actix Web server with the database client and cors
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://0.0.0.0:80")
+            .allowed_origin("http://0.0.0.0:8080")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT])
             .allowed_header(header::CONTENT_TYPE)
@@ -125,9 +125,9 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(cors)
             .app_data(web::Data::new(client.clone())) // Directly pass the Arc-wrapped client
-            .route("/meals", web::get().to(list_meals))
+            .route("/api/meals", web::get().to(list_meals))
     })
-    .bind("0.0.0.0:8080")?
+    .bind("0.0.0.0:8090")?
     .run()
     .await
 }

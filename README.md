@@ -4,42 +4,45 @@
 
 ```bash
 meal_website/
-│
-├── backend/                  # Backend code (Rust, etc.)
-│   ├── src/
-│   └── Cargo.toml
-│
-├── frontend/                 # Frontend code (HTML, CSS, JavaScript)
-│   ├── index.html
-│   └── style.css
-│
-├── db/                       # Database scripts and configurations
-│   ├── schema.sql            # SQL script to create database schema
-│   └── migrations/           # Database migration files (if using a migration tool)
-│
-├── auth
-│
-├── Dockerfile                # Dockerfile for containerization
-├── docker-compose.yml        # Docker Compose file for multi-container setup
-└── README.md                 # Project documentation
+├── README.md  # Project documentation and setup instructions
+├── auth  # Authentication module, possibly for user management
+├── backend
+│   ├── Dockerfile  # Docker configuration for the backend service
+│   └── src
+│       ├── lib.rs  # Shared library code
+│       ├── main.rs  # Entry point for the backend application
+│       └── schema.rs  # Database schema definitions
+├── database
+│   ├── Dockerfile  # Docker configuration for the database service
+│   ├── migrations  # Database migration scripts for schema updates
+│   └── schema.sql  # Initial database schema setup
+├── docker-compose.yaml  # Defines and runs multi-container Docker applications
+├── frontend
+│   ├── Dockerfile  # Docker configuration for the frontend service
+│   ├── config
+│   │   └── custom_nginx.conf  # Custom NGINX configuration for the frontend
+│   ├── index.html  # Main entry point for the web application
+│   └── script.js  # JavaScript code for frontend logic
+└── meals-example.env  # Example environment file, to be renamed to `.env` for use
 ```
 
 ### Quickstart
 
 ### Backend Quickstart
 
-Setup environment file by renaming `meals-example.env` -> `.env`:
+Setup environment file by renaming `meals-example.env` --> `meals.env`:
 
 ```bash
 # FILE: meal.env
-POSTGRES_USER=mealsuser
-POSTGRES_PASSWORD=mealspassword
-POSTGRES_DB=mealsdb
-POSTGRES_HOST=localhost
+POSTGRES_USER=mealsuser # UPDATE
+POSTGRES_PASSWORD=mealspassword # UPDATE
+POSTGRES_DB=mealsdb # UPDATE
+POSTGRES_HOST=database
 POSTGRES_PORT=5432
-DATABASE_URL=postgresql://mealsuser:mealspassword@localhost:5432/mealsdb
 ```
 
 ```bash
 docker compose up -d --build
+# homepage at: http://localhost:8080/
+# meals data from api at http://localhost:8080/api/meals
 ```

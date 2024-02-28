@@ -3,38 +3,29 @@ version: '3'
 services:
   database:
     build: ./database/
-    env_file:
-      - ./meals.env
+    env_file: ./meals.env
     volumes:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - meals-network
 
-  web:
+  backend:
     build: ./backend/
-    # env_file:
-    #   - ./meals.env
-    environment:
-      POSTGRES_USER: mealsuser
-      POSTGRES_PASSWORD: mealspassword
-      POSTGRES_DB: mealsdb
-      POSTGRES_HOST: database
-      POSTGRES_PORT: 5432
+    env_file: ./meals.env
     depends_on:
       - database
     networks:
       - meals-network
 
-  # frontend:
-  #   build: ./frontend/
-  #   env_file:
-  #     - ./meals.env
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - web
-  #   networks:
-  #     - meals-network
+  frontend:
+    build: ./frontend/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+    networks:
+      - meals-network
 
 networks:
   meals-network:
+    driver: bridge
